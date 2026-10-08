@@ -1,0 +1,166 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    background: #050510;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+canvas {
+    display: block;
+    background:
+        radial-gradient(circle at center, #10102b 0%, #050510 70%);
+}
+
+/* =========================
+   MENU
+========================= */
+
+#menu,
+#gameOver {
+    position: fixed;
+    z-index: 10;
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        radial-gradient(circle, rgba(20, 20, 70, .9), rgba(2, 2, 10, .98));
+
+    text-align: center;
+}
+
+#menu h1,
+#gameOver h1 {
+    font-size: clamp(45px, 8vw, 100px);
+
+    color: #00ffff;
+
+    text-shadow:
+        0 0 10px #00ffff,
+        0 0 30px #00ffff,
+        0 0 70px #0088ff;
+
+    margin-bottom: 15px;
+}
+
+#menu p,
+#gameOver p {
+    color: #bbb;
+    font-size: 18px;
+    margin: 8px;
+}
+
+/* =========================
+   BOTÕES
+========================= */
+
+button {
+    margin-top: 25px;
+
+    padding: 15px 45px;
+
+    border: 2px solid #00ffff;
+    border-radius: 8px;
+
+    background: transparent;
+    color: #00ffff;
+
+    font-size: 20px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: .2s;
+
+    box-shadow:
+        0 0 10px #00ffff inset,
+        0 0 15px #00ffff;
+}
+
+button:hover {
+    background: #00ffff;
+    color: #050510;
+
+    transform: scale(1.08);
+
+    box-shadow:
+        0 0 20px #00ffff,
+        0 0 50px #00ffff;
+}
+
+.controls {
+    margin-top: 25px;
+    opacity: .8;
+}
+
+/* =========================
+   HUD
+========================= */
+
+#hud {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+
+    z-index: 5;
+
+    display: none;
+
+    gap: 12px;
+    flex-direction: column;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    text-shadow: 0 0 8px #00ffff;
+}
+
+#hud div {
+    padding: 8px 12px;
+
+    border-left: 3px solid #00ffff;
+
+    background: rgba(0, 255, 255, .08);
+}
+
+/* =========================
+   GAME OVER
+========================= */
+
+#gameOver {
+    display: none;
+}
+
+#gameOver h1 {
+    color: #ff1744;
+
+    text-shadow:
+        0 0 10px #ff1744,
+        0 0 30px #ff1744,
+        0 0 60px #ff1744;
+}
+
+#gameOver button {
+    border-color: #ff1744;
+    color: #ff1744;
+
+    box-shadow:
+        0 0 10px #ff1744 inset,
+        0 0 15px #ff1744;
+}
+
+#gameOver button:hover {
+    background: #ff1744;
+    color: white;
+}

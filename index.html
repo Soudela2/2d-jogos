@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Survivor</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div id="menu">
+        <h1>NEON SURVIVOR</h1>
+        <p>Sobreviva o máximo que conseguir.</p>
+
+        <button id="startButton">JOGAR</button>
+
+        <div class="controls">
+            <p><b>WASD</b> ou <b>SETAS</b> — Mover</p>
+            <p><b>ESPAÇO</b> — Atirar</p>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="hud">
+        <div>❤️ Vida: <span id="health">100</span></div>
+        <div>⭐ Pontos: <span id="score">0</span></div>
+        <div>☠️ Inimigos: <span id="kills">0</span></div>
+        <div>🌊 Onda: <span id="wave">1</span></div>
+    </div>
+
+    <div id="gameOver">
+        <h1>VOCÊ MORREU</h1>
+
+        <p>Pontuação: <span id="finalScore">0</span></p>
+
+        <button id="restartButton">
+            JOGAR NOVAMENTE
+        </button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

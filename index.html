@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Survivor</title>
+
+    <title>NEON DUO</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,36 +12,78 @@
 <body>
 
     <div id="menu">
-        <h1>NEON SURVIVOR</h1>
-        <p>Sobreviva o máximo que conseguir.</p>
+        <h1>NEON DUO</h1>
 
-        <button id="startButton">JOGAR</button>
+        <p>2 PLAYERS • CO-OP • SURVIVAL</p>
 
-        <div class="controls">
-            <p><b>WASD</b> ou <b>SETAS</b> — Mover</p>
-            <p><b>ESPAÇO</b> — Atirar</p>
+        <button id="playButton">
+            JOGAR
+        </button>
+
+        <div class="instructions">
+
+            <div>
+                <h2>🔵 PLAYER 1</h2>
+                <p>W A S D — Mover</p>
+                <p>F — Atirar</p>
+            </div>
+
+            <div>
+                <h2>🔴 PLAYER 2</h2>
+                <p>↑ ↓ ← → — Mover</p>
+                <p>L — Atirar</p>
+            </div>
+
         </div>
     </div>
 
-    <canvas id="gameCanvas"></canvas>
+
+    <canvas id="game"></canvas>
+
 
     <div id="hud">
-        <div>❤️ Vida: <span id="health">100</span></div>
-        <div>⭐ Pontos: <span id="score">0</span></div>
-        <div>☠️ Inimigos: <span id="kills">0</span></div>
-        <div>🌊 Onda: <span id="wave">1</span></div>
+
+        <div class="playerHud blue">
+            <b>PLAYER 1</b>
+            <div class="healthBar">
+                <div id="health1"></div>
+            </div>
+        </div>
+
+        <div class="playerHud red">
+            <b>PLAYER 2</b>
+            <div class="healthBar">
+                <div id="health2"></div>
+            </div>
+        </div>
+
+        <div id="score">
+            PONTOS: 0
+        </div>
+
+        <div id="wave">
+            ONDA: 1
+        </div>
+
     </div>
 
-    <div id="gameOver">
-        <h1>VOCÊ MORREU</h1>
 
-        <p>Pontuação: <span id="finalScore">0</span></p>
+    <div id="gameOver">
+
+        <h1>GAME OVER</h1>
+
+        <p id="finalScore">
+            Pontuação: 0
+        </p>
 
         <button id="restartButton">
             JOGAR NOVAMENTE
         </button>
+
     </div>
 
+
     <script src="script.js"></script>
+
 </body>
 </html>

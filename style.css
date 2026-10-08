@@ -6,161 +6,330 @@
 
 body {
     overflow: hidden;
+
     background: #050510;
+
     color: white;
-    font-family: Arial, Helvetica, sans-serif;
+
+    font-family: Arial, sans-serif;
 }
+
+
+/* =====================================
+   CANVAS
+===================================== */
 
 canvas {
     display: block;
-    background:
-        radial-gradient(circle at center, #10102b 0%, #050510 70%);
+
+    width: 100vw;
+    height: 100vh;
+
+    background: #050510;
 }
 
-/* =========================
+
+/* =====================================
    MENU
-========================= */
+===================================== */
 
 #menu,
 #gameOver {
-    position: fixed;
-    z-index: 10;
 
-    width: 100%;
-    height: 100%;
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 20;
 
     display: flex;
-    flex-direction: column;
+
     align-items: center;
     justify-content: center;
 
-    background:
-        radial-gradient(circle, rgba(20, 20, 70, .9), rgba(2, 2, 10, .98));
+    flex-direction: column;
 
     text-align: center;
+
+    background:
+        radial-gradient(
+            circle,
+            #151550,
+            #050510 70%
+        );
 }
+
 
 #menu h1,
 #gameOver h1 {
-    font-size: clamp(45px, 8vw, 100px);
+
+    font-size: 80px;
 
     color: #00ffff;
+
+    letter-spacing: 10px;
 
     text-shadow:
         0 0 10px #00ffff,
         0 0 30px #00ffff,
-        0 0 70px #0088ff;
+        0 0 70px #0066ff;
 
     margin-bottom: 15px;
 }
 
-#menu p,
-#gameOver p {
-    color: #bbb;
-    font-size: 18px;
-    margin: 8px;
+
+#menu > p {
+
+    color: #aaa;
+
+    letter-spacing: 4px;
+
+    margin-bottom: 30px;
 }
 
-/* =========================
-   BOTÕES
-========================= */
+
+/* =====================================
+   BOTÃO
+===================================== */
 
 button {
-    margin-top: 25px;
 
-    padding: 15px 45px;
-
-    border: 2px solid #00ffff;
-    border-radius: 8px;
+    padding: 15px 50px;
 
     background: transparent;
+
     color: #00ffff;
 
+    border: 2px solid #00ffff;
+
+    border-radius: 6px;
+
     font-size: 20px;
+
     font-weight: bold;
 
     cursor: pointer;
 
-    transition: .2s;
-
     box-shadow:
-        0 0 10px #00ffff inset,
         0 0 15px #00ffff;
+
+    transition: .2s;
 }
 
+
 button:hover {
+
     background: #00ffff;
+
     color: #050510;
 
     transform: scale(1.08);
 
     box-shadow:
-        0 0 20px #00ffff,
-        0 0 50px #00ffff;
+        0 0 40px #00ffff;
 }
 
-.controls {
-    margin-top: 25px;
-    opacity: .8;
+
+/* =====================================
+   CONTROLES
+===================================== */
+
+.instructions {
+
+    display: flex;
+
+    gap: 80px;
+
+    margin-top: 50px;
 }
 
-/* =========================
+
+.instructions h2 {
+
+    margin-bottom: 12px;
+
+    color: #00ffff;
+}
+
+
+.instructions div:last-child h2 {
+
+    color: #ff1744;
+}
+
+
+.instructions p {
+
+    color: #aaa;
+
+    margin: 5px;
+}
+
+
+/* =====================================
    HUD
-========================= */
+===================================== */
 
 #hud {
+
     position: fixed;
+
     top: 20px;
     left: 20px;
+    right: 20px;
 
-    z-index: 5;
+    z-index: 10;
 
     display: none;
 
-    gap: 12px;
-    flex-direction: column;
+    justify-content: space-between;
 
-    font-size: 18px;
+    pointer-events: none;
+}
+
+
+.playerHud {
+
+    width: 230px;
+
+    padding: 10px;
+
+    background: rgba(0, 0, 0, .5);
+
+    border-radius: 5px;
+}
+
+
+.playerHud b {
+
+    display: block;
+
+    margin-bottom: 7px;
+}
+
+
+.blue {
+
+    border: 2px solid #00ffff;
+
+    color: #00ffff;
+}
+
+
+.red {
+
+    border: 2px solid #ff1744;
+
+    color: #ff1744;
+}
+
+
+.healthBar {
+
+    width: 100%;
+
+    height: 12px;
+
+    background: #222;
+
+    overflow: hidden;
+}
+
+
+.healthBar div {
+
+    height: 100%;
+
+    width: 100%;
+
+    transition: width .15s;
+}
+
+
+#health1 {
+
+    background: #00ffff;
+
+    box-shadow:
+        0 0 10px #00ffff;
+}
+
+
+#health2 {
+
+    background: #ff1744;
+
+    box-shadow:
+        0 0 10px #ff1744;
+}
+
+
+#score,
+#wave {
+
+    padding: 12px;
+
+    height: fit-content;
+
     font-weight: bold;
 
-    text-shadow: 0 0 8px #00ffff;
+    text-shadow:
+        0 0 10px #00ffff;
 }
 
-#hud div {
-    padding: 8px 12px;
 
-    border-left: 3px solid #00ffff;
-
-    background: rgba(0, 255, 255, .08);
-}
-
-/* =========================
+/* =====================================
    GAME OVER
-========================= */
+===================================== */
 
 #gameOver {
+
     display: none;
 }
 
+
 #gameOver h1 {
+
     color: #ff1744;
 
     text-shadow:
         0 0 10px #ff1744,
         0 0 30px #ff1744,
-        0 0 60px #ff1744;
+        0 0 70px #ff1744;
 }
 
-#gameOver button {
-    border-color: #ff1744;
-    color: #ff1744;
 
-    box-shadow:
-        0 0 10px #ff1744 inset,
-        0 0 15px #ff1744;
+#gameOver p {
+
+    font-size: 22px;
+
+    color: #ccc;
+
+    margin: 20px;
 }
 
-#gameOver button:hover {
-    background: #ff1744;
-    color: white;
+
+@media(max-width: 800px) {
+
+    #menu h1 {
+
+        font-size: 45px;
+    }
+
+    .instructions {
+
+        gap: 20px;
+
+        flex-direction: column;
+    }
+
+    #hud {
+
+        font-size: 12px;
+    }
+
+    .playerHud {
+
+        width: 130px;
+    }
 }

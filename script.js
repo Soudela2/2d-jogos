@@ -1,67 +1,91 @@
-// ========================================
-// NEON SURVIVOR
-// ========================================
+const canvas = document.getElementById("game");
 
-const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-const menu = document.getElementById("menu");
-const gameOverScreen = document.getElementById("gameOver");
-const hud = document.getElementById("hud");
 
-const startButton = document.getElementById("startButton");
-const restartButton = document.getElementById("restartButton");
+// =====================================
+// TAMANHO DA TELA
+// =====================================
 
-const healthText = document.getElementById("health");
-const scoreText = document.getElementById("score");
-const killsText = document.getElementById("kills");
-const waveText = document.getElementById("wave");
-const finalScoreText = document.getElementById("finalScore");
+function resize() {
 
-
-// ========================================
-// CANVAS
-// ========================================
-
-function resizeCanvas() {
     canvas.width = window.innerWidth;
+
     canvas.height = window.innerHeight;
 }
 
-resizeCanvas();
+resize();
 
-window.addEventListener("resize", resizeCanvas);
+window.addEventListener("resize", resize);
 
 
-// ========================================
+// =====================================
+// ELEMENTOS
+// =====================================
+
+const menu =
+    document.getElementById("menu");
+
+const hud =
+    document.getElementById("hud");
+
+const gameOver =
+    document.getElementById("gameOver");
+
+const playButton =
+    document.getElementById("playButton");
+
+const restartButton =
+    document.getElementById("restartButton");
+
+const health1 =
+    document.getElementById("health1");
+
+const health2 =
+    document.getElementById("health2");
+
+const scoreText =
+    document.getElementById("score");
+
+const waveText =
+    document.getElementById("wave");
+
+const finalScore =
+    document.getElementById("finalScore");
+
+
+// =====================================
 // TECLADO
-// ========================================
+// =====================================
 
 const keys = {};
 
-window.addEventListener("keydown", (event) => {
-    keys[event.key.toLowerCase()] = true;
+window.addEventListener("keydown", e => {
 
-    if (event.code === "Space") {
-        keys.space = true;
-        event.preventDefault();
-    }
-});
+    keys[e.key.toLowerCase()] = true;
 
-window.addEventListener("keyup", (event) => {
-    keys[event.key.toLowerCase()] = false;
+    if (e.key === "ArrowUp" ||
+        e.key === "ArrowDown" ||
+        e.key === "ArrowLeft" ||
+        e.key === "ArrowRight") {
 
-    if (event.code === "Space") {
-        keys.space = false;
+        e.preventDefault();
     }
 });
 
 
-// ========================================
-// JOGADOR
-// ========================================
+window.addEventListener("keyup", e => {
 
-const player = {
+    keys[e.key.toLowerCase()] = false;
+});
+
+
+// =====================================
+// JOGADORES
+// =====================================
+
+const player1 = {
+
     x: 0,
     y: 0,
 
@@ -70,317 +94,550 @@ const player = {
     speed: 5,
 
     health: 100,
-
     maxHealth: 100,
 
-    cooldown: 0
+    color: "#00ffff",
+
+    shootCooldown: 0,
+
+    alive: true
 };
 
 
-// ========================================
-// ARRAYS DO JOGO
-// ========================================
+const player2 = {
+
+    x: 0,
+    y: 0,
+
+    radius: 18,
+
+    speed: 5,
+
+    health: 100,
+    maxHealth: 100,
+
+    color: "#ff1744",
+
+    shootCooldown: 0,
+
+    alive: true
+};
+
+
+// =====================================
+// ARRAYS
+// =====================================
 
 let bullets = [];
+
 let enemies = [];
+
 let particles = [];
 
-let score = 0;
-let kills = 0;
-let wave = 1;
 
-let gameRunning = false;
+// =====================================
+// GAME
+// =====================================
+
+let running = false;
+
+let score = 0;
+
+let wave = 1;
 
 let spawnTimer = 0;
 
 
-// ========================================
-// UTILIDADES
-// ========================================
+// =====================================
+// FUNÇÕES
+// =====================================
 
 function random(min, max) {
-    return Math.random() * (max - min) + min;
+
+    return Math.random() *
+        (max - min) + min;
 }
+
 
 function distance(a, b) {
-    const dx = a.x - b.x;
-    const dy = a.y - b.y;
 
-    return Math.sqrt(dx * dx + dy * dy);
+    return Math.hypot(
+        a.x - b.x,
+        a.y - b.y
+    );
 }
 
 
-// ========================================
-// PARTÍCULAS
-// ========================================
+// =====================================
+// COMEÇAR
+// =====================================
 
-function createParticles(x, y, color, amount = 10) {
+function startGame() {
 
-    for (let i = 0; i < amount; i++) {
+    menu.style.display = "none";
 
-        particles.push({
-            x: x,
-            y: y,
+    gameOver.style.display = "none";
 
-            vx: random(-4, 4),
-            vy: random(-4, 4),
+    hud.style.display = "flex";
 
-            life: 1,
 
-            size: random(2, 5),
+    player1.x =
+        canvas.width * .35;
 
-            color: color
-        });
-    }
+    player1.y =
+        canvas.height * .5;
+
+    player1.health = 100;
+
+    player1.alive = true;
+
+
+    player2.x =
+        canvas.width * .65;
+
+    player2.y =
+        canvas.height * .5;
+
+    player2.health = 100;
+
+    player2.alive = true;
+
+
+    bullets = [];
+
+    enemies = [];
+
+    particles = [];
+
+
+    score = 0;
+
+    wave = 1;
+
+    spawnTimer = 30;
+
+    running = true;
+
+    requestAnimationFrame(loop);
 }
 
 
-function updateParticles() {
+// =====================================
+// MOVIMENTO PLAYER 1
+// =====================================
 
-    for (let i = particles.length - 1; i >= 0; i--) {
+function movePlayer1() {
 
-        const p = particles[i];
+    if (!player1.alive)
+        return;
 
-        p.x += p.vx;
-        p.y += p.vy;
 
-        p.life -= 0.025;
+    let dx = 0;
 
-        if (p.life <= 0) {
-            particles.splice(i, 1);
-        }
+    let dy = 0;
+
+
+    if (keys.w)
+        dy--;
+
+    if (keys.s)
+        dy++;
+
+    if (keys.a)
+        dx--;
+
+    if (keys.d)
+        dx++;
+
+
+    if (dx !== 0 || dy !== 0) {
+
+        const length =
+            Math.hypot(dx, dy);
+
+        dx /= length;
+
+        dy /= length;
+
+        player1.x +=
+            dx * player1.speed;
+
+        player1.y +=
+            dy * player1.speed;
     }
+
+
+    limitPlayer(player1);
 }
 
 
-function drawParticles() {
+// =====================================
+// MOVIMENTO PLAYER 2
+// =====================================
 
-    particles.forEach(p => {
+function movePlayer2() {
 
-        ctx.save();
+    if (!player2.alive)
+        return;
 
-        ctx.globalAlpha = p.life;
 
-        ctx.fillStyle = p.color;
+    let dx = 0;
 
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = p.color;
+    let dy = 0;
 
-        ctx.beginPath();
 
-        ctx.arc(
-            p.x,
-            p.y,
-            p.size,
-            0,
-            Math.PI * 2
-        );
+    if (keys.arrowup)
+        dy--;
 
-        ctx.fill();
+    if (keys.arrowdown)
+        dy++;
 
-        ctx.restore();
-    });
+    if (keys.arrowleft)
+        dx--;
+
+    if (keys.arrowright)
+        dx++;
+
+
+    if (dx !== 0 || dy !== 0) {
+
+        const length =
+            Math.hypot(dx, dy);
+
+        dx /= length;
+
+        dy /= length;
+
+        player2.x +=
+            dx * player2.speed;
+
+        player2.y +=
+            dy * player2.speed;
+    }
+
+
+    limitPlayer(player2);
 }
 
 
-// ========================================
-// CRIAR INIMIGO
-// ========================================
+// =====================================
+// LIMITAR JOGADOR
+// =====================================
 
-function spawnEnemy() {
+function limitPlayer(player) {
 
-    let side = Math.floor(random(0, 4));
+    player.x = Math.max(
+        player.radius,
+        Math.min(
+            canvas.width - player.radius,
+            player.x
+        )
+    );
 
-    let x;
-    let y;
 
-    if (side === 0) {
-        x = random(0, canvas.width);
-        y = -40;
-    }
-
-    if (side === 1) {
-        x = canvas.width + 40;
-        y = random(0, canvas.height);
-    }
-
-    if (side === 2) {
-        x = random(0, canvas.width);
-        y = canvas.height + 40;
-    }
-
-    if (side === 3) {
-        x = -40;
-        y = random(0, canvas.height);
-    }
-
-    const strong = Math.random() < Math.min(.1 + wave * .01, .35);
-
-    enemies.push({
-
-        x,
-        y,
-
-        radius: strong ? 25 : 15,
-
-        speed: strong
-            ? random(1, 1.5)
-            : random(1.5, 2.5),
-
-        health: strong
-            ? 3
-            : 1,
-
-        maxHealth: strong
-            ? 3
-            : 1,
-
-        damage: strong
-            ? 25
-            : 10,
-
-        color: strong
-            ? "#ff1744"
-            : "#ff00ff"
-    });
+    player.y = Math.max(
+        player.radius,
+        Math.min(
+            canvas.height - player.radius,
+            player.y
+        )
+    );
 }
 
 
-// ========================================
-// ATIRAR
-// ========================================
+// =====================================
+// TIRO PLAYER 1
+// =====================================
 
-function shoot() {
+function shootPlayer1() {
 
-    if (player.cooldown > 0) return;
+    if (!player1.alive)
+        return;
 
-    let closestEnemy = null;
-    let closestDistance = Infinity;
+    if (player1.shootCooldown > 0)
+        return;
 
-    enemies.forEach(enemy => {
 
-        const d = distance(player, enemy);
+    const target =
+        findNearestEnemy(player1);
 
-        if (d < closestDistance) {
-            closestDistance = d;
-            closestEnemy = enemy;
-        }
-    });
 
-    let angle;
+    let angle = 0;
 
-    if (closestEnemy) {
 
-        angle = Math.atan2(
-            closestEnemy.y - player.y,
-            closestEnemy.x - player.x
-        );
+    if (target) {
 
-    } else {
-
-        angle = 0;
+        angle =
+            Math.atan2(
+                target.y - player1.y,
+                target.x - player1.x
+            );
     }
 
-    const speed = 12;
 
     bullets.push({
 
-        x: player.x,
-        y: player.y,
+        x: player1.x,
 
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
+        y: player1.y,
+
+        vx: Math.cos(angle) * 12,
+
+        vy: Math.sin(angle) * 12,
 
         radius: 5,
 
         damage: 1,
 
+        owner: 1,
+
+        color: player1.color,
+
         life: 100
     });
 
-    player.cooldown = 12;
+
+    player1.shootCooldown = 12;
 }
 
 
-// ========================================
-// ATUALIZAR JOGADOR
-// ========================================
+// =====================================
+// TIRO PLAYER 2
+// =====================================
 
-function updatePlayer() {
+function shootPlayer2() {
 
-    let dx = 0;
-    let dy = 0;
+    if (!player2.alive)
+        return;
 
-    if (keys.w || keys.arrowup) {
-        dy--;
+    if (player2.shootCooldown > 0)
+        return;
+
+
+    const target =
+        findNearestEnemy(player2);
+
+
+    let angle = 0;
+
+
+    if (target) {
+
+        angle =
+            Math.atan2(
+                target.y - player2.y,
+                target.x - player2.x
+            );
     }
 
-    if (keys.s || keys.arrowdown) {
-        dy++;
-    }
 
-    if (keys.a || keys.arrowleft) {
-        dx--;
-    }
+    bullets.push({
 
-    if (keys.d || keys.arrowright) {
-        dx++;
-    }
+        x: player2.x,
 
-    // Evita velocidade diagonal maior
-    if (dx !== 0 || dy !== 0) {
+        y: player2.y,
 
-        const length = Math.sqrt(dx * dx + dy * dy);
+        vx: Math.cos(angle) * 12,
 
-        dx /= length;
-        dy /= length;
+        vy: Math.sin(angle) * 12,
 
-        player.x += dx * player.speed;
-        player.y += dy * player.speed;
-    }
+        radius: 5,
 
-    // Limites
-    player.x = Math.max(
-        player.radius,
-        Math.min(canvas.width - player.radius, player.x)
-    );
+        damage: 1,
 
-    player.y = Math.max(
-        player.radius,
-        Math.min(canvas.height - player.radius, player.y)
-    );
+        owner: 2,
 
-    if (player.cooldown > 0) {
-        player.cooldown--;
-    }
+        color: player2.color,
 
-    if (keys.space) {
-        shoot();
-    }
+        life: 100
+    });
+
+
+    player2.shootCooldown = 12;
 }
 
 
-// ========================================
+// =====================================
+// ACHAR INIMIGO MAIS PRÓXIMO
+// =====================================
+
+function findNearestEnemy(player) {
+
+    let nearest = null;
+
+    let nearestDistance = Infinity;
+
+
+    for (const enemy of enemies) {
+
+        const d =
+            distance(player, enemy);
+
+
+        if (d < nearestDistance) {
+
+            nearestDistance = d;
+
+            nearest = enemy;
+        }
+    }
+
+
+    return nearest;
+}
+
+
+// =====================================
+// CRIAR INIMIGO
+// =====================================
+
+function spawnEnemy() {
+
+    const side =
+        Math.floor(random(0, 4));
+
+
+    let x;
+    let y;
+
+
+    if (side === 0) {
+
+        x = random(0, canvas.width);
+
+        y = -40;
+    }
+
+
+    if (side === 1) {
+
+        x = canvas.width + 40;
+
+        y = random(0, canvas.height);
+    }
+
+
+    if (side === 2) {
+
+        x = random(0, canvas.width);
+
+        y = canvas.height + 40;
+    }
+
+
+    if (side === 3) {
+
+        x = -40;
+
+        y = random(0, canvas.height);
+    }
+
+
+    const strong =
+        Math.random() < .15;
+
+
+    enemies.push({
+
+        x: x,
+
+        y: y,
+
+        radius:
+            strong ? 26 : 16,
+
+        speed:
+            strong
+            ? 1.2
+            : random(1.5, 2.3),
+
+        health:
+            strong
+            ? 3
+            : 1,
+
+        maxHealth:
+            strong
+            ? 3
+            : 1,
+
+        damage:
+            strong
+            ? 25
+            : 10,
+
+        color:
+            strong
+            ? "#ff6600"
+            : "#a020f0"
+    });
+}
+
+
+// =====================================
+// ATUALIZAR JOGADORES
+// =====================================
+
+function updatePlayers() {
+
+    movePlayer1();
+
+    movePlayer2();
+
+
+    if (player1.shootCooldown > 0)
+        player1.shootCooldown--;
+
+
+    if (player2.shootCooldown > 0)
+        player2.shootCooldown--;
+
+
+    if (keys.f)
+        shootPlayer1();
+
+
+    if (keys.l)
+        shootPlayer2();
+}
+
+
+// =====================================
 // ATUALIZAR TIROS
-// ========================================
+// =====================================
 
 function updateBullets() {
 
-    for (let i = bullets.length - 1; i >= 0; i--) {
+    for (
+        let i = bullets.length - 1;
+        i >= 0;
+        i--
+    ) {
 
         const bullet = bullets[i];
 
+
         bullet.x += bullet.vx;
+
         bullet.y += bullet.vy;
 
         bullet.life--;
 
+
         if (
+
             bullet.life <= 0 ||
+
             bullet.x < -50 ||
-            bullet.x > canvas.width + 50 ||
+
+            bullet.x >
+            canvas.width + 50 ||
+
             bullet.y < -50 ||
-            bullet.y > canvas.height + 50
+
+            bullet.y >
+            canvas.height + 50
+
         ) {
 
             bullets.splice(i, 1);
@@ -389,52 +646,95 @@ function updateBullets() {
 }
 
 
-// ========================================
+// =====================================
 // ATUALIZAR INIMIGOS
-// ========================================
+// =====================================
 
 function updateEnemies() {
 
-    for (let i = enemies.length - 1; i >= 0; i--) {
+    for (
+        let i = enemies.length - 1;
+        i >= 0;
+        i--
+    ) {
 
         const enemy = enemies[i];
 
-        const angle = Math.atan2(
-            player.y - enemy.y,
-            player.x - enemy.x
-        );
 
-        enemy.x += Math.cos(angle) * enemy.speed;
-        enemy.y += Math.sin(angle) * enemy.speed;
+        // Escolher jogador mais próximo
+
+        const d1 =
+            player1.alive
+            ? distance(enemy, player1)
+            : Infinity;
 
 
-        // Colisão com jogador
+        const d2 =
+            player2.alive
+            ? distance(enemy, player2)
+            : Infinity;
 
-        const playerDistance = distance(
-            player,
-            enemy
-        );
+
+        const target =
+            d1 < d2
+            ? player1
+            : player2;
+
+
+        if (!target.alive)
+            continue;
+
+
+        // Movimento
+
+        const angle =
+            Math.atan2(
+                target.y - enemy.y,
+                target.x - enemy.x
+            );
+
+
+        enemy.x +=
+            Math.cos(angle) *
+            enemy.speed;
+
+
+        enemy.y +=
+            Math.sin(angle) *
+            enemy.speed;
+
+
+        // Bater no jogador
 
         if (
-            playerDistance <
-            player.radius + enemy.radius
+            distance(enemy, target)
+            <
+            enemy.radius +
+            target.radius
         ) {
 
-            player.health -= enemy.damage;
+            target.health -=
+                enemy.damage;
+
 
             createParticles(
-                player.x,
-                player.y,
-                "#00ffff",
+                target.x,
+                target.y,
+                target.color,
                 15
             );
 
+
             enemies.splice(i, 1);
 
-            if (player.health <= 0) {
-                endGame();
-                return;
+
+            if (target.health <= 0) {
+
+                target.health = 0;
+
+                target.alive = false;
             }
+
 
             continue;
         }
@@ -442,40 +742,55 @@ function updateEnemies() {
 
         // Colisão com tiros
 
-        for (let j = bullets.length - 1; j >= 0; j--) {
+        for (
+            let j = bullets.length - 1;
+            j >= 0;
+            j--
+        ) {
 
-            const bullet = bullets[j];
+            const bullet =
+                bullets[j];
+
 
             if (
-                distance(enemy, bullet) <
-                enemy.radius + bullet.radius
+                distance(enemy, bullet)
+                <
+                enemy.radius +
+                bullet.radius
             ) {
 
-                enemy.health -= bullet.damage;
+                enemy.health -=
+                    bullet.damage;
+
 
                 bullets.splice(j, 1);
+
 
                 createParticles(
                     bullet.x,
                     bullet.y,
-                    enemy.color,
-                    5
+                    bullet.color,
+                    6
                 );
 
-                if (enemy.health <= 0) {
+
+                if (
+                    enemy.health <= 0
+                ) {
+
+                    score +=
+                        enemy.maxHealth > 1
+                        ? 50
+                        : 10;
+
 
                     createParticles(
                         enemy.x,
                         enemy.y,
                         enemy.color,
-                        20
+                        25
                     );
 
-                    score += enemy.radius > 20
-                        ? 50
-                        : 10;
-
-                    kills++;
 
                     enemies.splice(i, 1);
 
@@ -487,166 +802,79 @@ function updateEnemies() {
 }
 
 
-// ========================================
-// DESENHAR JOGADOR
-// ========================================
+// =====================================
+// PARTÍCULAS
+// =====================================
 
-function drawPlayer() {
+function createParticles(
+    x,
+    y,
+    color,
+    amount
+) {
 
-    ctx.save();
+    for (
+        let i = 0;
+        i < amount;
+        i++
+    ) {
 
-    ctx.translate(
-        player.x,
-        player.y
-    );
+        particles.push({
 
-    ctx.fillStyle = "#00ffff";
+            x: x,
 
-    ctx.shadowBlur = 25;
-    ctx.shadowColor = "#00ffff";
+            y: y,
 
-    ctx.beginPath();
+            vx: random(-4, 4),
 
-    ctx.moveTo(22, 0);
-    ctx.lineTo(-15, -13);
-    ctx.lineTo(-9, 0);
-    ctx.lineTo(-15, 13);
+            vy: random(-4, 4),
 
-    ctx.closePath();
+            size: random(2, 5),
 
-    ctx.fill();
+            life: 1,
 
-    // Núcleo
-    ctx.fillStyle = "#ffffff";
-
-    ctx.shadowBlur = 10;
-
-    ctx.beginPath();
-
-    ctx.arc(
-        0,
-        0,
-        5,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fill();
-
-    ctx.restore();
+            color: color
+        });
+    }
 }
 
 
-// ========================================
-// DESENHAR TIROS
-// ========================================
+function updateParticles() {
 
-function drawBullets() {
+    for (
+        let i = particles.length - 1;
+        i >= 0;
+        i--
+    ) {
 
-    bullets.forEach(bullet => {
-
-        ctx.save();
-
-        ctx.fillStyle = "#ffff00";
-
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = "#ffff00";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            bullet.x,
-            bullet.y,
-            bullet.radius,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-
-        ctx.restore();
-    });
-}
+        const p =
+            particles[i];
 
 
-// ========================================
-// DESENHAR INIMIGOS
-// ========================================
+        p.x += p.vx;
 
-function drawEnemies() {
-
-    enemies.forEach(enemy => {
-
-        ctx.save();
-
-        ctx.fillStyle = enemy.color;
-
-        ctx.shadowBlur = 25;
-        ctx.shadowColor = enemy.color;
-
-        ctx.beginPath();
-
-        ctx.arc(
-            enemy.x,
-            enemy.y,
-            enemy.radius,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-
-        // núcleo
-        ctx.fillStyle = "#ffffff";
-
-        ctx.shadowBlur = 5;
-
-        ctx.beginPath();
-
-        ctx.arc(
-            enemy.x,
-            enemy.y,
-            enemy.radius * .3,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-
-        ctx.restore();
+        p.y += p.vy;
 
 
-        // Barra de vida
+        p.vx *= .95;
 
-        if (enemy.maxHealth > 1) {
+        p.vy *= .95;
 
-            const width = enemy.radius * 2;
 
-            ctx.fillStyle = "#222";
+        p.life -= .03;
 
-            ctx.fillRect(
-                enemy.x - width / 2,
-                enemy.y - enemy.radius - 10,
-                width,
-                4
-            );
 
-            ctx.fillStyle = "#ff1744";
+        if (p.life <= 0) {
 
-            ctx.fillRect(
-                enemy.x - width / 2,
-                enemy.y - enemy.radius - 10,
-                width * (enemy.health / enemy.maxHealth),
-                4
-            );
+            particles.splice(i, 1);
         }
-    });
+    }
 }
 
 
-// ========================================
+// =====================================
 // FUNDO
-// ========================================
+// =====================================
 
 function drawBackground() {
 
@@ -660,183 +888,445 @@ function drawBackground() {
     );
 
 
-    // Grade futurista
+    // Grade
 
-    ctx.strokeStyle = "rgba(0,255,255,.05)";
+    ctx.strokeStyle =
+        "rgba(0,255,255,.06)";
+
     ctx.lineWidth = 1;
 
-    const gridSize = 50;
+
+    const size = 50;
+
 
     for (
         let x = 0;
         x < canvas.width;
-        x += gridSize
+        x += size
     ) {
 
         ctx.beginPath();
 
         ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+
+        ctx.lineTo(
+            x,
+            canvas.height
+        );
 
         ctx.stroke();
     }
 
+
     for (
         let y = 0;
         y < canvas.height;
-        y += gridSize
+        y += size
     ) {
 
         ctx.beginPath();
 
         ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
+
+        ctx.lineTo(
+            canvas.width,
+            y
+        );
 
         ctx.stroke();
     }
 }
 
 
-// ========================================
-// ATUALIZAR HUD
-// ========================================
+// =====================================
+// DESENHAR JOGADOR
+// =====================================
+
+function drawPlayer(player) {
+
+    if (!player.alive)
+        return;
+
+
+    ctx.save();
+
+
+    ctx.translate(
+        player.x,
+        player.y
+    );
+
+
+    ctx.fillStyle =
+        player.color;
+
+
+    ctx.shadowBlur = 25;
+
+    ctx.shadowColor =
+        player.color;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(22, 0);
+
+    ctx.lineTo(-15, -13);
+
+    ctx.lineTo(-8, 0);
+
+    ctx.lineTo(-15, 13);
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    // Núcleo
+
+    ctx.fillStyle = "white";
+
+    ctx.shadowBlur = 10;
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        0,
+        5,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    ctx.restore();
+}
+
+
+// =====================================
+// DESENHAR INIMIGOS
+// =====================================
+
+function drawEnemies() {
+
+    for (const enemy of enemies) {
+
+        ctx.save();
+
+
+        ctx.fillStyle =
+            enemy.color;
+
+
+        ctx.shadowBlur = 25;
+
+        ctx.shadowColor =
+            enemy.color;
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            enemy.x,
+            enemy.y,
+            enemy.radius,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+
+        // Núcleo
+
+        ctx.fillStyle =
+            "#ffffff";
+
+
+        ctx.shadowBlur = 5;
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            enemy.x,
+            enemy.y,
+            enemy.radius * .3,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+
+        ctx.restore();
+
+
+        // Vida dos fortes
+
+        if (enemy.maxHealth > 1) {
+
+            const width =
+                enemy.radius * 2;
+
+
+            ctx.fillStyle =
+                "#222";
+
+
+            ctx.fillRect(
+                enemy.x - width / 2,
+                enemy.y - enemy.radius - 10,
+                width,
+                4
+            );
+
+
+            ctx.fillStyle =
+                "#ff1744";
+
+
+            ctx.fillRect(
+                enemy.x - width / 2,
+                enemy.y - enemy.radius - 10,
+                width *
+                (enemy.health /
+                enemy.maxHealth),
+                4
+            );
+        }
+    }
+}
+
+
+// =====================================
+// DESENHAR TIROS
+// =====================================
+
+function drawBullets() {
+
+    for (const bullet of bullets) {
+
+        ctx.save();
+
+
+        ctx.fillStyle =
+            bullet.color;
+
+
+        ctx.shadowBlur = 20;
+
+        ctx.shadowColor =
+            bullet.color;
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            bullet.x,
+            bullet.y,
+            bullet.radius,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+
+        ctx.restore();
+    }
+}
+
+
+// =====================================
+// DESENHAR PARTÍCULAS
+// =====================================
+
+function drawParticles() {
+
+    for (const p of particles) {
+
+        ctx.save();
+
+
+        ctx.globalAlpha =
+            p.life;
+
+
+        ctx.fillStyle =
+            p.color;
+
+
+        ctx.shadowBlur = 15;
+
+        ctx.shadowColor =
+            p.color;
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            p.x,
+            p.y,
+            p.size,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+
+        ctx.restore();
+    }
+}
+
+
+// =====================================
+// HUD
+// =====================================
 
 function updateHUD() {
 
-    healthText.textContent =
-        Math.max(0, player.health);
+    health1.style.width =
+        (player1.health /
+        player1.maxHealth *
+        100) + "%";
+
+
+    health2.style.width =
+        (player2.health /
+        player2.maxHealth *
+        100) + "%";
+
 
     scoreText.textContent =
-        score;
+        "PONTOS: " + score;
 
-    killsText.textContent =
-        kills;
 
     waveText.textContent =
-        wave;
+        "ONDA: " + wave;
 }
 
 
-// ========================================
-// ONDAS
-// ========================================
+// =====================================
+// VERIFICAR GAME OVER
+// =====================================
 
-function updateWave() {
+function checkGameOver() {
 
-    wave =
-        Math.floor(kills / 10) + 1;
+    if (
+        !player1.alive &&
+        !player2.alive
+    ) {
+
+        endGame();
+    }
 }
 
 
-// ========================================
-// LOOP PRINCIPAL
-// ========================================
+// =====================================
+// LOOP
+// =====================================
 
-function gameLoop() {
+function loop() {
 
-    if (!gameRunning) return;
+    if (!running)
+        return;
+
 
     drawBackground();
 
-    updatePlayer();
+
+    updatePlayers();
+
     updateBullets();
+
     updateEnemies();
+
     updateParticles();
 
-    updateWave();
 
-    drawBullets();
-    drawEnemies();
-    drawParticles();
-    drawPlayer();
+    // Spawn
 
-    updateHUD();
-
-    // Spawn progressivo
     spawnTimer--;
+
 
     if (spawnTimer <= 0) {
 
-        const amount =
-            Math.min(1 + Math.floor(wave / 3), 5);
+        spawnEnemy();
 
-        for (let i = 0; i < amount; i++) {
+
+        if (score > 0 &&
+            score % 500 === 0) {
+
             spawnEnemy();
         }
 
+
         spawnTimer =
-            Math.max(15, 60 - wave * 3);
+            Math.max(
+                15,
+                60 - wave * 3
+            );
     }
 
-    requestAnimationFrame(gameLoop);
+
+    wave =
+        Math.floor(score / 300) + 1;
+
+
+    drawBullets();
+
+    drawEnemies();
+
+    drawParticles();
+
+
+    drawPlayer(player1);
+
+    drawPlayer(player2);
+
+
+    updateHUD();
+
+    checkGameOver();
+
+
+    requestAnimationFrame(loop);
 }
 
 
-// ========================================
-// COMEÇAR JOGO
-// ========================================
-
-function startGame() {
-
-    menu.style.display = "none";
-    gameOverScreen.style.display = "none";
-    hud.style.display = "flex";
-
-    player.x = canvas.width / 2;
-    player.y = canvas.height / 2;
-
-    player.health = 100;
-    player.cooldown = 0;
-
-    bullets = [];
-    enemies = [];
-    particles = [];
-
-    score = 0;
-    kills = 0;
-    wave = 1;
-
-    spawnTimer = 20;
-
-    gameRunning = true;
-
-    gameLoop();
-}
-
-
-// ========================================
+// =====================================
 // GAME OVER
-// ========================================
+// =====================================
 
 function endGame() {
 
-    gameRunning = false;
+    running = false;
 
-    finalScoreText.textContent = score;
-
-    gameOverScreen.style.display = "flex";
     hud.style.display = "none";
+
+    gameOver.style.display = "flex";
+
+    finalScore.textContent =
+        "Pontuação: " + score;
 }
 
 
-// ========================================
+// =====================================
 // BOTÕES
-// ========================================
+// =====================================
 
-startButton.addEventListener(
+playButton.addEventListener(
     "click",
     startGame
 );
+
 
 restartButton.addEventListener(
     "click",
     startGame
 );
-Como rodar
-Crie uma pasta, coloque os três arquivos dentro dela:
-
-NEON-SURVIVOR
-│
-├── index.html
-├── style.css
-└── script.js
